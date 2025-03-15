@@ -24,6 +24,10 @@ npm run dev
 
 各ページには相互に移動できるリンクがあります。
 
+## 簡単な解説
+
+ [サンプルコードベースでの Options API とComposition API の比較](docs/index.md)
+
 ---
 
 # Vue 2 and Vue 3.5 Comparison Example
@@ -49,5 +53,3 @@ npm run dev
 After starting the development server, you can access the application at:
 - `/vue2` - Vue 2 style (Options API) counter app
 - `/vue3` - Vue 3.5 style (Composition API) counter app
-
-Each page contains links to navigate between the implementations.

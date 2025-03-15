@@ -1,4 +1,4 @@
-# Vue 2 の Options API と Vue 3.5 の Composition API の比較
+# サンプルコードベースでの Options API とComposition API の比較
 
 このドキュメントでは、Vue 2 の Options API と Vue 3.5 の Composition API の主な違いを、実際のコード例を用いて解説します。
 
