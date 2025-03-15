@@ -1,5 +1,9 @@
 <template>
   <div class="counter-app">
+    <div class="navigation-links">
+      <router-link to="/vue3" class="nav-link">Go to Vue3</router-link>
+    </div>
+
     <p v-if="latestError">Latest error: {{ latestError }}</p>
 
     <h1>Vue 2 Counter Example</h1>
@@ -106,6 +110,28 @@ export default {
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 8px;
+
+  .navigation-links {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    gap: 20px;
+    
+    .nav-link {
+      color: #4caf50;
+      text-decoration: none;
+      font-weight: bold;
+      
+      &:hover {
+        text-decoration: underline;
+      }
+    }
+    
+    .current-page {
+      color: #333;
+      font-weight: bold;
+    }
+  }
 
   h1 {
     color: #333;
