@@ -4,8 +4,12 @@ import { RouterView, useRouter, useRoute } from 'vue-router'
 const router = useRouter()
 const currentRoute = useRoute()
 
-const goToCounter = () => {
+const goToVue3Counter = () => {
   router.push('/vue3')
+}
+
+const goToVue2Counter = () => {
+  router.push('/vue2')
 }
 </script>
 
@@ -13,9 +17,15 @@ const goToCounter = () => {
   <div class="app-container">
     <RouterView v-if="currentRoute.path !== '/'" />
     <div v-else class="button-container">
-      <button class="counter-button" @click="goToCounter">
-        Vue 3 Counter
-      </button>
+      <h1>Vue Counter Examples</h1>
+      <div class="buttons">
+        <button class="counter-button vue3" @click="goToVue3Counter">
+          Vue 3 Counter
+        </button>
+        <button class="counter-button vue2" @click="goToVue2Counter">
+          Vue 2 Counter
+        </button>
+      </div>
     </div>
   </div>
 </template>
@@ -31,6 +41,17 @@ const goToCounter = () => {
 
 .button-container {
   text-align: center;
+  
+  h1 {
+    margin-bottom: 30px;
+    color: #333;
+  }
+  
+  .buttons {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+  }
 }
 
 .counter-button {
@@ -45,6 +66,14 @@ const goToCounter = () => {
   
   &:hover {
     background-color: #45a049;
+  }
+  
+  &.vue2 {
+    background-color: #2196F3;
+    
+    &:hover {
+      background-color: #0b7dda;
+    }
   }
 }
 </style>
