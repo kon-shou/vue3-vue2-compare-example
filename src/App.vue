@@ -1,79 +1,50 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
+import { RouterView, useRouter, useRoute } from 'vue-router'
+
+const router = useRouter()
+const currentRoute = useRoute()
+
+const goToCounter = () => {
+  router.push('/vue3')
+}
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="./assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/vue3">Vue 3 Counter</RouterLink>
-      </nav>
-      <HelloWorld msg="You did it!" />
+  <div class="app-container">
+    <RouterView v-if="currentRoute.path !== '/'" />
+    <div v-else class="button-container">
+      <button class="counter-button" @click="goToCounter">
+        Vue 3 Counter
+      </button>
     </div>
-  </header>
-
-  <main>
-    <RouterView />
-  </main>
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
+<style scoped lang="scss">
+.app-container {
   width: 100%;
-  font-size: 16px;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.button-container {
   text-align: center;
-  margin-top: 2rem;
 }
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-nav a.router-link-active {
-  color: var(--color-text);
-  font-weight: bold;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
+.counter-button {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 15px 30px;
+  font-size: 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  
+  &:hover {
+    background-color: #45a049;
   }
 }
 </style>
