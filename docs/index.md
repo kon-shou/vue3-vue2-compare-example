@@ -1,12 +1,29 @@
-# サンプルコードベースでの Options API とComposition API の比較
+# 前置き
+最近、Vue3をCompositionAPIで書く機会が増えてきたのですが、自分はVue2のOptionsAPIに書き慣れていたので、あらためてCompositionAPIとOptionsAPIの書き方の違いを、サンプルアプリを用いてまとめました。
 
-このドキュメントでは、Vue 2 の Options API と Vue 3.5 の Composition API の主な違いを、実際のコード例を用いて解説します。
+実行環境はVue3.5を想定しています。
 
-## 1. コンポーネントの基本構造
+サンプルコードは下記
+https://github.com/kon-shou/vue3-vue2-compare-example
 
-### Options API (Vue 2)
+# サンプルアプリについて
 
-Options API では、コンポーネントはオブジェクトとして定義され、`data`、`methods`、`computed`、`watch` などの特定のオプションに機能を分類します。
+画面はこのようになります。
+![](https://storage.googleapis.com/zenn-user-upload/d4ff1c816d8c-20250403.png)
+
+
+パット見、ゴチャゴチャでさっぱりわかりませんが、やってることは
+
+- 親子でコンポーネントを実装して、それぞれで状態を持ち、それぞれで変更できるようにする
+
+だけです。
+
+# OptionsAPI と CompositionAPI の書き方の比較
+## コンポーネントの基本構造
+
+### OptionsAPI
+
+OptionsAPI では、コンポーネントはオブジェクトとして定義され、`data`、`methods`、`computed`、`watch` などの特定のオプションに機能を分類します。
 
 ```js
 export default {
@@ -22,13 +39,11 @@ export default {
 }
 ```
 
-### Composition API (Vue 3.5)
+### CompositionAPI
 
-Composition API では、`<script setup>` 構文を使用し、関数やコンポーザブルを使って機能を整理します。
-どこかで「ref() vs reactive()」を見たかもしれないですが、基本的には、ref()を推奨します
+一方、CompositionAPI では、`<script setup>` 構文を使用し、関数やコンポーザブルを使って機能を整理します。
 
-```js
-<script setup>
+```ts
 import { ref, computed, onMounted } from 'vue'
 
 // ステート、メソッド、計算プロパティなどをトップレベルで定義
@@ -42,100 +57,65 @@ function increment() {
 onMounted(() => {
   // マウント時の処理
 })
-</script>
 ```
 
-## 2. データ管理の違い
+OptionsAPIでは、それぞれ専用の `components` 等のキー名・メソッド名が割り振られていたのが、CompositionAPIでは
 
-### Options API (Vue 2)
+- `data()` -> `ref()` or `reactive()`
+- `computed: {}` -> `computed(() => {})`
+- `methods: {}` -> (通常の関数)
+- `watch: {}` -> `watch(() => {})`
+- `mounted()` -> `onMounted(() => {})`
+
+のような変更がされ、それぞれ `<script setup> `内で記述するようになりました。
+
+また、ライフサイクルフックの話になったので言及するのですが、OptionsAPIでの `async created()` を、そのままCompositionAPIで書くには工夫が必要です。
+
+[Suspenseを使う](https://ja.vuejs.org/guide/built-ins/suspense) というのも手ですが、そちらはまだExperimentalということもあり「<script>のトップレベルで await 無しで呼び出す」が筋が良いのではないかと思っています（要調査）
+
+## コンポーネント内の状態管理
+
+### OptionsAPI
 
 ```js
-// CounterApp.vue
 export default {
   data() {
     return {
       total: 0,
-      firstMessage: '',
-      secondMessage: ''
+    }
+  },
+  methods: {
+    handleIncrement(amount) {
+      this.total += amount
     }
   }
 }
 ```
 
-データにアクセスする際は `this` を使用します：
+### CompositionAPI
 
-```js
-methods: {
-  handleIncrement(amount) {
-    this.total += amount
-  }
-}
-```
-
-### Composition API (Vue 3.5)
-
-```js
-// CounterApp.vue
+```ts
 import { ref } from 'vue'
 
 const total = ref(0)
-const firstMessage = ref('')
-const secondMessage = ref('')
 
 const handleIncrement = (amount) => {
   total.value += amount
 }
 ```
 
-`ref()` で作成したリアクティブな値にアクセスする際は `.value` プロパティを使用します。ただし、テンプレート内では自動的に展開されるため `.value` は不要です。
+「dataは `ref()` になり、methodsは普通の関数になる」という変更になります。
 
-## 3. ライフサイクルフックの違い
+また個人的な見解ですが「 `ref()` vs `reactive()` 」の話は、基本的には `ref()` を使っていくのが良いと思います。
+`ref()`の返り値がRefオブジェクトになることで、<script>内で `.value` 参照しなくてはいけないのが煩わしい、という意見もありますが、裏を返せば「Refオブジェクトと非リアクティブなオブジェクトを区別できる」ことが利点であるためです。
 
-### Options API (Vue 2)
+
+## プロパティとイベントの定義
+
+### OptionsAPI
 
 ```js
 export default {
-  mounted() {
-    console.log('CounterApp component mounted')
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'ArrowRight') {
-        this.handleIncrement(1)
-      } else if (event.key === 'ArrowLeft') {
-        this.handleDecrement(1)
-      }
-    })
-  }
-}
-```
-
-### Composition API (Vue 3.5)
-
-```js
-import { onMounted } from 'vue'
-
-onMounted(() => {
-  console.log('CounterApp component mounted')
-  window.addEventListener('keydown', (event) => {
-    if (event.key === 'ArrowRight') {
-      handleIncrement(1)
-    } else if (event.key === 'ArrowLeft') {
-      handleDecrement(1)
-    }
-  })
-})
-```
-
-Vue 3.5 では、各ライフサイクルフックは個別の関数としてインポートされ、コンポーネントのセットアップ中に呼び出されます。
-おそらく `async created()` は、現時点では、そのまま Vue 3.5 で書くのは難しいので、別のライフサイクルを検討してくだい（要調査）
-
-## 4. プロパティとイベントの定義
-
-### Options API (Vue 2)
-
-```js
-// CounterControl.vue
-export default {
-  name: 'CounterControl',
   props: {
     total: {
       type: Number,
@@ -145,83 +125,50 @@ export default {
       type: Number,
       default: 1,
     },
-    modelValue: {
-      type: String,
-      default: '',
-    },
   },
   methods: {
     increment() {
-      this.clickedCount++
       this.$emit('increment', this.step)
-    }
-  }
+    },
+  },
 }
 ```
 
-### Composition API (Vue 3.5)
+### CompositionAPI
 
-```js
-// CounterControl.vue
+```ts
 import { defineProps, defineEmits, defineModel } from 'vue'
 
-// v-modelのための値
-const message = defineModel('message')
-
-// プロパティの定義（TypeScriptの型を活用）
 const { total, step = 1 } = defineProps<{
   total: number
   step?: number
 }>()
 
-// イベントの定義（TypeScriptの型を活用）
 const emit = defineEmits<{
   increment: [value: number]
-  decrement: [value: number]
-  reset: []
 }>()
 
 const increment = () => {
-  clickedCount.value++
   emit('increment', step)
 }
 ```
+CompositionAPI では、`defineProps`、`defineEmits` を使用してプロパティとイベントを定義できるようになりました。
 
-Vue 3.5 では、`defineProps`、`defineEmits`、`defineModel` などのコンパイラマクロを使用してプロパティとイベントを定義します。TypeScriptと組み合わせることで、型安全性が向上します。
-特に `defineProps` は、Vue 3.5 で [リアクティブな props の分割代入](https://ja.vuejs.org/guide/components/props#reactive-props-destructure) が導入されて、書き心地が良くなりました。
+- `defineProps` は、Vue3.5で [リアクティブな props の分割代入](https://ja.vuejs.org/guide/components/props#reactive-props-destructure)
+- `defineEmits` は、Vue3.3で [名前付きタプル構文](https://ja.vuejs.org/api/sfc-script-setup#type-only-props-emit-declarations) 、
 
-## 5. 算出プロパティ（Computed Properties）
+がそれぞれ書けるようになりました。
 
-### Options API (Vue 2)
+## ミックスインとコンポーザブル
 
-```js
-export default {
-  computed: {
-    doubleClickedCount() {
-      return this.clickedCount * 2
-    }
-  }
-}
-```
-
-### Composition API (Vue 3.5)
+### OptionsAPI - ミックスイン
 
 ```js
-import { computed } from 'vue'
-
-const doubleClickedCount = computed(() => clickedCount.value * 2)
-```
-
-## 6. ミックスインとコンポーザブル
-
-### Options API (Vue 2) - ミックスイン
-
-```js
-// AlertError.js
+// mixin
 export const AlertErrorMixin = {
   data() {
     return {
-      latestError: ''
+      latestError: '',
     }
   },
   methods: {
@@ -230,21 +177,23 @@ export const AlertErrorMixin = {
       if (error) {
         alert(error)
       }
-    }
-  }
+    },
+  },
 }
+```
 
-// 使用側
+```js
+// 呼び出し側
 export default {
   mixins: [AlertErrorMixin],
   // ...
 }
 ```
 
-### Composition API (Vue 3.5) - コンポーザブル
+### CompositionAPI - コンポーザブル
 
-```js
-// AlertError.ts
+```ts
+// Composable
 import { ref } from 'vue'
 
 export function useAlertError() {
@@ -259,108 +208,155 @@ export function useAlertError() {
 
   return { latestError, alertError }
 }
+```
 
-// 使用側
+```ts
+// 呼び出し側
 import { useAlertError } from './AlertError'
 
 const { latestError, alertError } = useAlertError()
 ```
 
-コンポーザブルは、ミックスインよりも明示的で再利用しやすいアプローチを提供します。名前空間の衝突を避け、使用する機能を明確に選択できます。
+OptionsAPIでは「mixinはコンポーネントと同等の状態やメソッドを持っていて、呼び出し側コンポーネントにマージされる」だったのが、CompositionAPIだと「composableは、返り値を返す関数で、呼び出し側はその関数を呼ぶ」となりました。
 
-## 7. テンプレート参照（Refs）
+（具体的な理由の説明が難しいので割愛するのですが...）これにより、ロジックの共通化において、取り回しが良くなりました。
 
-### Options API (Vue 2)
+なお、CompositionAPIのcomposableは、「メソッド名の先頭の `use` をつける」という取り決めになっています。
+
+## テンプレート参照（Refs）によるメソッド呼び出し
+
+### OptionsAPI
+
+親コンポーネント
 
 ```html
 <template>
-  <div ref="footer" class="footer">...</div>
+  <CounterControl
+    ref="counterControlRef2"
+  >
+    <button @click="resetCounterControlRef2ClickedCount">
+      (from parent) Reset 2nd ClickedCount
+    </button>
+  </CounterControl>
+</template>
+
+<script>
+  export default {
+    methods: {
+      resetCounterControlRef2ClickedCount() {
+        this.$refs.counterControlRef2.resetClickedCount()
+      },
+    },
+  }
+</script>
+```
+
+子コンポーネント(CounterControl)
+
+```html
+<template>
+  <slot />
+</template>
+
+<script>
+  export default {
+    data() {
+      return {
+        clickedCount: 0,
+      }
+    },
+    methods: {
+      resetClickedCount() {
+        this.clickedCount = 0
+      },
+    },
+  }
+</script>
+```
+
+### CompositionAPI
+
+親コンポーネント
+
+```html
+<script setup>
+  import { useTemplateRef } from 'vue'
+
+  const secondCounterControlRef = useTemplateRef('counterControlRef2')
+
+  const resetCounterControlRef2ClickedCount = () => {
+    secondCounterControlRef.value?.resetClickedCount()
+  }
+</script>
+
+<template>
+  <CounterControl
+    ref="counterControlRef2"
+  >
+    <button @click="resetCounterControlRef2ClickedCount">
+      (from parent) Reset 2nd ClickedCount
+    </button>
+  </CounterControl>
+</template>
+```
+
+子コンポーネント(CounterControl)
+```html
+<script setup>
+  const clickedCount = ref(0)
+
+  const resetClickedCount = () => (clickedCount.value = 0)
+
+  defineExpose({
+    resetClickedCount,
+  })
+</script>
+
+<template>
+  <slot />
+</template>
+```
+
+OptionsAPIでは、 `ref="xxx"` が記述されていたら `this.$refs.xxx` で任意のメソッドにアクセスできていたのが、CompositionAPIでは下記の記述が求められるようになりました。
+
+- 親コンポーネント： `useTemplateRef('xxx')`
+- 子コンポーネント： `defineExpose()`
+
+これにより、親子間で露出されるメソッドや状態が、明示的になりました。
+
+なお、Vue3.5より前では、 `useTemplateRef()` でなく、下記のように `ref()` を使っていたのが、最新ではその必要がなくなりました。
+
+```js
+// 要素の参照を保持する ref を宣言します。
+// 名前は、テンプレートの ref の値に一致させる必要があります。
+const input = ref(null)
+```
+
+## v-modelの定義
+
+### OptionsAPI
+
+親コンポーネント
+
+```html
+<template>
+  <CounterControl v-model="firstMessage" />
 </template>
 
 <script>
 export default {
-  mounted() {
-    if (this.$slots.footer && this.$refs.footer) {
-      this.$refs.footer.insertAdjacentText('afterbegin', 'Footer!')
+  data() {
+    return {
+      firstMessage: '',
     }
-  }
+  },
 }
 </script>
 ```
 
-### Composition API (Vue 3.5)
+子コンポーネント（CounterControl）
 
 ```html
-<template>
-  <div ref="footer" class="footer">...</div>
-</template>
-
-<script setup>
-import { useTemplateRef } from 'vue'
-
-const footerRef = useTemplateRef('footer')
-
-onMounted(() => {
-  if (slots.footer && footerRef.value) {
-    footerRef.value.insertAdjacentText('afterbegin', 'Footer!')
-  }
-})
-</script>
-```
-
-## 8. 子コンポーネントのメソッド呼び出し
-
-### Options API (Vue 2)
-
-```html
-<template>
-  <button @click="$refs.counterControlRef1.resetClickedCount()">
-    Reset ClickedCount
-  </button>
-</template>
-
-<script>
-export default {
-  methods: {
-    resetFirstClickedCount() {
-      this.$refs.counterControlRef1.resetClickedCount()
-    }
-  }
-}
-</script>
-```
-
-### Composition API (Vue 3.5)
-
-```html
-<template>
-  <button @click="firstCounterControlRef?.resetClickedCount()">
-    Reset ClickedCount
-  </button>
-</template>
-
-<script setup>
-import { useTemplateRef } from 'vue'
-
-const firstCounterControlRef = useTemplateRef('counterControlRef1')
-
-// 子コンポーネント側では、メソッドを公開するために defineExpose() が必要
-defineExpose({
-  resetClickedCount,
-  doubleClickedCount
-})
-</script>
-```
-
-## 9. v-model の違い
-
-### Options API (Vue 2)
-
-```html
-<!-- 親コンポーネント -->
-<CounterControl v-model="firstMessage" />
-
-<!-- 子コンポーネント -->
 <template>
   <textarea :value="modelValue" @input="$emit('update:modelValue', $event.target.value)" />
 </template>
@@ -368,86 +364,44 @@ defineExpose({
 <script>
 export default {
   props: {
+    // （ちなみに、vue2時点では「value」だった）
     modelValue: {
       type: String,
-      default: ''
-    }
-  }
+      default: '',
+    },
+  },
 }
 </script>
 ```
 
-### Composition API (Vue 3.5)
+### CompositionAPI
+
+親コンポーネント
 
 ```html
-<!-- 親コンポーネント -->
-<CounterControl v-model:message="firstMessage" />
+<script setup>
+const firstMessage = ref('')
+</script>
 
-<!-- 子コンポーネント -->
+<template>
+  <CounterControl v-model:message="firstMessage" />
+</template>
+```
+
+子コンポーネント（CounterControl）
+
+```html
+<script setup>
+const message = defineModel<string>('message')
+</script>
+
 <template>
   <textarea v-model="message" />
 </template>
-
-<script setup>
-import { defineModel } from 'vue'
-
-// 'message'という名前でモデルを定義
-const message = defineModel('message')
-</script>
 ```
 
-Vue 3.5 では、`defineModel` マクロを使用して双方向バインディングを簡単に実装できます。また、複数の v-model を使用する場合も名前を指定できます。
+CompositionAPI では、`defineModel` を使用することで、簡単に実装できるようになりました。
+また `v-model:message` のように変数名を追加することで、複数の v-model を使用するが可能になりました。
 
-## 10. TypeScript サポート
-
-### Options API (Vue 2)
-
-TypeScript との統合は複雑で、多くの場合、型の恩恵を十分に受けられません。
-
-```js
-export default {
-  data() {
-    return {
-      total: 0 // 型情報が明示的でない
-    }
-  },
-  methods: {
-    handleIncrement(amount) { // パラメータの型が不明確
-      this.total += amount
-    }
-  }
-}
-```
-
-### Composition API (Vue 3.5)
-
-TypeScript との統合が自然で、型の恩恵を最大限に活用できます。
-
-```ts
-import { ref } from 'vue'
-
-const total = ref<number>(0) // 明示的な型
-const firstMessage = ref<string>('')
-
-const handleIncrement = (amount: number) => { // パラメータに型アノテーション
-  total.value += amount
-}
-
-// defineProps と defineEmits でも型を活用
-const props = defineProps<{
-  total: number
-  step?: number // オプショナルなプロパティ
-}>()
-```
-
-## まとめ
-
-Vue 3.5 の Composition API は、以下の点で Vue 2 の Options API と比較して優れています：
-
-1. **関連する機能をまとめられる**: Options API では機能ごとに分散していたコードを、Composition API では論理的にグループ化できます。
-2. **再利用性の向上**: コンポーザブル関数を使用することで、コードの再利用が容易になります。
-3. **TypeScript との統合**: 型安全性が向上し、開発体験が向上します。
-4. **より明示的なコード**: 依存関係が明確になり、コードの理解が容易になります。
-5. **テスト容易性**: 個々の関数をより簡単に分離してテストできます。
-
-ただし、小規模なコンポーネントや、Vue 2 に慣れている開発者にとっては、Options API の方が直感的に感じられる場合もあります。Vue 3.5 は両方の API スタイルをサポートしているため、プロジェクトやチームのニーズに合わせて選択できます。
+# 参考URL
+- https://ja.vuejs.org/

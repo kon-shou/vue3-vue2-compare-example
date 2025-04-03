@@ -1,12 +1,12 @@
 <template>
   <div class="counter-app">
     <div class="navigation-links">
-      <router-link to="/vue3" class="nav-link">Go to Vue3</router-link>
+      <router-link to="/vue3" class="nav-link">Go to CompositionAPI(Vue3)</router-link>
     </div>
 
     <p v-if="latestError">Latest error: {{ latestError }}</p>
 
-    <h1>Vue 2 Counter Example</h1>
+    <h1>OptionsAPI(Vue2) Counter Example</h1>
 
     <h3>(from parent) firstMessage: {{ firstMessage }}</h3>
     <h3>(from parent) secondMessage: {{ secondMessage }}</h3>
@@ -47,7 +47,7 @@
       </template>
 
       <button @click="secondMessage = ''">(from parent) Reset 2nd Message</button>
-      <button @click="$refs.counterControlRef2.resetClickedCount()">
+      <button @click="resetCounterControlRef2ClickedCount">
         (from parent) Reset 2nd ClickedCount
       </button>
       <button @click="alertError(secondMessage)">(from parent) Alert 2nd message</button>
@@ -63,14 +63,14 @@ import { AlertErrorMixin } from './AlertError'
 
 export default {
   components: {
-    CounterControl
+    CounterControl,
   },
   mixins: [AlertErrorMixin],
   data() {
     return {
       total: 0,
       firstMessage: '',
-      secondMessage: ''
+      secondMessage: '',
     }
   },
   methods: {
@@ -89,6 +89,9 @@ export default {
       this.secondMessage = ''
       this.alertError('')
     },
+    resetCounterControlRef2ClickedCount() {
+      this.$refs.counterControlRef2.resetClickedCount()
+    }
   },
   mounted() {
     console.log('CounterApp component mounted')
@@ -99,7 +102,7 @@ export default {
         this.handleDecrement(1)
       }
     })
-  }
+  },
 }
 </script>
 
@@ -116,17 +119,17 @@ export default {
     justify-content: center;
     margin-bottom: 20px;
     gap: 20px;
-    
+
     .nav-link {
       color: #4caf50;
       text-decoration: none;
       font-weight: bold;
-      
+
       &:hover {
         text-decoration: underline;
       }
     }
-    
+
     .current-page {
       color: #333;
       font-weight: bold;

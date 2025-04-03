@@ -30,10 +30,13 @@ const resetAll = () => {
   secondMessage.value = ''
   alertError('')
 }
+const resetCounterControlRef2ClickedCount = () => {
+  secondCounterControlRef.value?.resetClickedCount()
+}
 
-// ライフサイクルフック。createdは消えたけど、多分そのうちトップレベルawaitでやれば良くなる。
-// （今もSuspenseで可能かも？）
-onMounted(() => {
+// わざわざcreatedを定義しないでトップレベルで書いても良いけど、createdにしたほうが分かりやすいのでは？
+// todo プロジェクト内での合意
+const created = () => {
   console.log('CounterApp component mounted')
   window.addEventListener('keydown', (event: KeyboardEvent) => {
     if (event.key === 'ArrowRight') {
@@ -42,18 +45,19 @@ onMounted(() => {
       handleDecrement(1)
     }
   })
-})
+}
+created()
 </script>
 
 <template>
   <div class="counter-app">
     <div class="navigation-links">
-      <router-link to="/vue2" class="nav-link">Go to Vue2</router-link>
+      <router-link to="/vue2" class="nav-link">Go to OptionsAPI(Vue2)</router-link>
     </div>
 
     <p v-if="latestError">Latest error: {{ latestError }}</p>
 
-    <h1>Vue 3 Counter Example</h1>
+    <h1>CompositionAPI(Vue3) Counter Example</h1>
 
     <h3>(from parent) firstMessage: {{ firstMessage }}</h3>
     <h3>(from parent) secondMessage: {{ secondMessage }}</h3>
@@ -94,7 +98,7 @@ onMounted(() => {
       </template>
 
       <button @click="secondMessage = ''">(from parent) Reset 2nd Message</button>
-      <button @click="secondCounterControlRef?.resetClickedCount()">
+      <button @click="resetCounterControlRef2ClickedCount">
         (from parent) Reset 2nd ClickedCount
       </button>
       <button @click="alertError(secondMessage)">(from parent) Alert 2nd message</button>
@@ -117,17 +121,17 @@ onMounted(() => {
     justify-content: center;
     margin-bottom: 20px;
     gap: 20px;
-    
+
     .nav-link {
-      color: #2196F3;
+      color: #2196f3;
       text-decoration: none;
       font-weight: bold;
-      
+
       &:hover {
         text-decoration: underline;
       }
     }
-    
+
     .current-page {
       color: #333;
       font-weight: bold;

@@ -20,10 +20,10 @@ const goToVue2Counter = () => {
       <h1>Vue Counter Examples</h1>
       <div class="buttons">
         <button class="counter-button vue3" @click="goToVue3Counter">
-          Vue 3 Counter
+          CompositionAPI(Vue3) Counter
         </button>
         <button class="counter-button vue2" @click="goToVue2Counter">
-          Vue 2 Counter
+          OptionsAPI(Vue2) Counter
         </button>
       </div>
     </div>
@@ -41,12 +41,12 @@ const goToVue2Counter = () => {
 
 .button-container {
   text-align: center;
-  
+
   h1 {
     margin-bottom: 30px;
     color: #333;
   }
-  
+
   .buttons {
     display: flex;
     gap: 20px;
@@ -63,14 +63,14 @@ const goToVue2Counter = () => {
   border-radius: 8px;
   cursor: pointer;
   transition: background-color 0.3s;
-  
+
   &:hover {
     background-color: #45a049;
   }
-  
+
   &.vue2 {
-    background-color: #2196F3;
-    
+    background-color: #2196f3;
+
     &:hover {
       background-color: #0b7dda;
     }
